@@ -1,3 +1,4 @@
+import { Chip } from "chip8-wasm";
 
 const canvas = document.getElementById("chip-display");
 
@@ -7,15 +8,29 @@ canvas.height = 32 * SCALE;
 
 const context = canvas.getContext("2d");
 
-console.log("Start from web");
-
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function test_sleep(n) {
-    for (let i = 0; i <= n; i++) {
-        await sleep(i * 1000);
-        console.log(`waiting for ${i} sec`);
+async function run() {
+    const data = await fetch(`roms/TEST_IMG`);
+    const array = await data.arrayBuffer();
+    const buff = new Uint8ClampedArray(array);
+
+    const chip = Chip.new(context).load(buff);
+    console.log("Chip loaded");
+
+    chip.draw();
+    
+    while (chip.pc < 0x300) {
+        let redraw = chip.tick();
+        
+        if (redraw) {
+            chip.draw();
+        }
+        
+        await sleep(20);
     }
+
+    console.log("End of memory");
 }
 
-test_sleep(3);
+run();
