@@ -6,18 +6,23 @@ pub struct Display {
     canvas: CanvasRenderingContext2d,
 }
 
+const SCALE: u32 = 10;
+
 impl Display {
     pub fn new(canvas: CanvasRenderingContext2d) -> Self {
         Display {
-            buffer: vec![0; (64 * 10) * (32 * 10) * 4],
+            buffer: vec![0; (64 * SCALE as usize) * (32 * SCALE as usize) * 4],
             canvas,
         }
     }
 
     pub fn draw(&mut self, data: &[u8]) -> Result<(), JsValue> {
-        nearest_interpolation(data, &mut self.buffer, 10);
-        let image =
-            ImageData::new_with_u8_clamped_array_and_sh(Clamped(&self.buffer), 64 * 10, 32 * 10)?;
+        nearest_interpolation(data, &mut self.buffer, SCALE);
+        let image = ImageData::new_with_u8_clamped_array_and_sh(
+            Clamped(&self.buffer),
+            64 * SCALE,
+            32 * SCALE,
+        )?;
         self.canvas.put_image_data(&image, 0_f64, 0_f64)?;
 
         Ok(())
@@ -25,15 +30,15 @@ impl Display {
 }
 
 fn nearest_interpolation(data: &[u8], display: &mut [u8], scale: u32) {
-    for x in 0..32 * scale {
-        for y in 0..64 * scale {
+    for y in 0..(32 * scale) {
+        for x in 0..(64 * scale) {
             let px = x / scale;
             let py = y / scale;
 
-            let pixel = data[(px * 64 + py) as usize];
+            let pixel = data[(py * 64 + px) as usize];
             let pixel = if pixel == 0 { 0 } else { 255 };
 
-            let idx = (x * 64 * scale * 4 + y * 4) as usize;
+            let idx = (y * 64 * scale * 4 + x * 4) as usize;
             display[idx + 0] = pixel;
             display[idx + 1] = pixel;
             display[idx + 2] = pixel;

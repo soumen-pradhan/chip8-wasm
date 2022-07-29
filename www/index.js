@@ -8,7 +8,7 @@ canvas.height = 32 * SCALE;
 
 const context = canvas.getContext("2d");
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 async function run() {
     const data = await fetch(`roms/TEST_IMG`);
@@ -20,17 +20,20 @@ async function run() {
 
     chip.draw();
     
-    while (chip.pc < 0x300) {
+    let it = 0
+    while (chip.pc <= 0x500 && it <= 256) {
         let redraw = chip.tick();
         
         if (redraw) {
             chip.draw();
         }
         
-        await sleep(20);
+        await sleep(2);
+        it++;
     }
 
     console.log("End of memory");
 }
 
 run();
+

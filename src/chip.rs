@@ -165,6 +165,10 @@ impl Chip {
             (0x08, _, _, 0x02) => self.op_8xy2(x, y),
             (0x08, _, _, 0x03) => self.op_8xy3(x, y),
             (0x08, _, _, 0x04) => self.op_8xy4(x, y),
+            (0x08, _, _, 0x05) => self.op_8xy5(x, y),
+            (0x08, _, _, 0x06) => self.op_8xy6(x),
+            (0x08, _, _, 0x07) => self.op_8xy7(x, y),
+            (0x08, _, _, 0x0e) => self.op_8xye(x),
             (0x0a, _, _, _) => self.op_annn(nnn),
             (0x0d, _, _, _) => self.op_dxyn(x, y, n),
             _ => PC::Next,
@@ -219,11 +223,45 @@ impl Chip {
     }
 
     fn op_8xy4(&mut self, x: u8, y: u8) -> PC {
-        let vx = self.reg[x as usize] as u16;
-        let vy = self.reg[y as usize] as u16;
+        let (x, y) = (x as usize, y as usize);
+
+        let vx = self.reg[x] as u16;
+        let vy = self.reg[y] as u16;
         let result = vx + vy;
-        self.reg[x as usize] = result as u8;
+        self.reg[x] = result as u8;
         self.reg[0x0f] = if result > 0xFF { 1 } else { 0 };
+        PC::Next
+    }
+
+    fn op_8xy5(&mut self, x: u8, y: u8) -> PC {
+        let (x, y) = (x as usize, y as usize);
+        
+        self.reg[0x0f] = if self.reg[x] > self.reg[y] { 1 } else { 0 };
+        self.reg[x] = self.reg[x].wrapping_sub(self.reg[y]);
+        PC::Next
+    }
+
+    fn op_8xy6(&mut self, x: u8) -> PC {
+        let x = x as usize;
+
+        self.reg[0x0f] = self.reg[x] & 1;
+        self.reg[x] >>= 1;
+        PC::Next
+    }
+
+    fn op_8xy7(&mut self, x: u8, y: u8) -> PC {
+        let (x, y) = (x as usize, y as usize);
+        
+        self.reg[0x0f] = if self.reg[y] > self.reg[x] { 1 } else { 0 };
+        self.reg[x] = self.reg[y].wrapping_sub(self.reg[x]);
+        PC::Next
+    }
+
+    fn op_8xye(&mut self, x: u8) -> PC {
+        let x = x as usize;
+
+        self.reg[0x0f] = (self.reg[x] & 0b_1000_0000) >> 7;
+        self.reg[x] <<= 1;
         PC::Next
     }
 
@@ -235,13 +273,14 @@ impl Chip {
     fn op_dxyn(&mut self, x: u8, y: u8, n: u8) -> PC {
         self.reg[0x0f] = 0;
 
-        let x = self.reg[x as usize] % 64;
+        let x = (self.reg[x as usize] % 64) as usize;
 
         for row in 0..n {
-            let y = self.reg[y as usize + row as usize] % 32;
-            if y >= 32 {
-                break;
-            }
+            let y = (self.reg[y as usize] % 32 + row) as usize;
+
+                if y >= 32 {
+                    break;
+                }
 
             let sprite = self.mem[self.idx_reg as usize + row as usize];
 
@@ -257,17 +296,17 @@ impl Chip {
             ];
 
             for (sprite_x, &bit) in bits.iter().enumerate() {
-                if x + sprite_x as u8 >= 64 {
+                if x + sprite_x >= 64 {
                     break;
                 }
 
-                let screen_pixel = self.vram[(y * 64 + (x + sprite_x as u8)) as usize];
+                let screen_pixel = self.vram[y * 64 + (x + sprite_x)];
 
                 if bit != 0 {
                     if screen_pixel == 0 {
-                        self.vram[(y * 64 + (x + sprite_x as u8)) as usize] = 1;
+                        self.vram[y * 64 + (x + sprite_x)] = 1;
                     } else {
-                        self.vram[(y * 64 + (x + sprite_x as u8)) as usize] = 0;
+                        self.vram[y * 64 + (x + sprite_x)] = 0;
                         self.reg[0x0f] = 1;
                     }
                 }
