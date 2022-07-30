@@ -2,6 +2,8 @@
 
 A Chip 8 Emulator in Webassembly.
 
+## [Demo](https://soumen-pradhan.github.io/chip8-wasm/)
+
 ### Build
 Ensure you have wasm-pack installed.
 ```bash
