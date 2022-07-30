@@ -4,7 +4,7 @@ const path = require("path");
 module.exports = {
     entry: "./bootstrap.js",
     output: {
-        path: path.resolve(__dirname, "dist"),
+        path: path.resolve(path.join(__dirname, ".."), "docs"),
         filename: "bootstrap.js",
     },
     mode: "production",
@@ -12,9 +12,9 @@ module.exports = {
         new CopyWebpackPlugin([
             "index.html",
             "style.css",
-              {
+            {
                 from: "roms/loktar00/*.ch8",
-              },
-            ]),
+            },
+        ]),
     ],
 };
