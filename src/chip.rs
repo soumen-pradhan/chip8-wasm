@@ -1,14 +1,15 @@
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
-use web_sys::{console, CanvasRenderingContext2d};
+use web_sys::CanvasRenderingContext2d;
 
 use crate::display::Display;
+use crate::utils::set_panic_hook;
 
 #[allow(dead_code)]
 #[wasm_bindgen]
 pub struct Chip {
     mem: [u8; 4096],
     reg: [u8; 16],
-    idx_reg: u16,
+    idx: u16,
     pub pc: u16,
     sp: u8,
     stack: [u16; 16],
@@ -21,6 +22,13 @@ pub struct Chip {
 
     keys: [bool; 16],
     key_waiting: bool,
+    key_register: u16,
+}
+
+#[wasm_bindgen]
+pub struct OutputChange {
+    pub vram: bool,
+    pub beep: bool
 }
 
 const FONT_SET: [u8; 80] = [
@@ -61,6 +69,8 @@ impl PC {
 #[wasm_bindgen]
 impl Chip {
     pub fn new(canvas: CanvasRenderingContext2d) -> Self {
+        set_panic_hook();
+
         let mut mem = [0_u8; 4096];
         for i in 0x050..0x09f {
             mem[i] = FONT_SET[i - 0x050];
@@ -69,7 +79,7 @@ impl Chip {
         Chip {
             mem,
             reg: [0; 16],
-            idx_reg: 0,
+            idx: 0,
             pc: 0x200,
             sp: 0,
             stack: [0; 16],
@@ -82,6 +92,7 @@ impl Chip {
 
             keys: [false; 16],
             key_waiting: false,
+            key_register: 0,
         }
     }
 
@@ -102,37 +113,53 @@ impl Chip {
         Ok(())
     }
 
-    pub fn tick(&mut self) -> bool {
+    pub fn tick(&mut self) -> OutputChange {
         self.vram_change = false;
 
-        /* if self.key_waiting {
-        //     for key in self.keys.iter() {
-        //         if *key {
-        //             self.key_waiting = false;
-        //         }
-        //     }
-        // } else {
-         */
-        if self.delay_timer > 0 {
-            self.delay_timer -= 1;
+        if self.key_waiting {
+            for i in 0..self.keys.len() {
+                if self.keys[i] {
+                    self.key_waiting = false;
+                    self.reg[self.key_register as usize] = i as u8;
+                    break;
+                }
+            }
+        } else {
+            if self.delay_timer > 0 {
+                self.delay_timer -= 1;
+            }
+            if self.sound_timer > 0 {
+                self.sound_timer -= 1;
+            }
+
+            let opcode = (self.mem[self.pc as usize] as u16) << 8
+                | (self.mem[(self.pc + 1) as usize] as u16);
+
+            let pc_state = self.execute(opcode);
+
+            match pc_state {
+                PC::Next => self.pc += 2,
+                PC::Skip => self.pc += 4,
+                PC::Jump(addr) => self.pc = addr,
+            };
         }
-        if self.sound_timer > 0 {
-            self.sound_timer -= 1;
+
+        OutputChange {
+            vram: self.vram_change,
+            beep: self.sound_timer > 0,
         }
+    }
 
-        let opcode =
-            (self.mem[self.pc as usize] as u16) << 8 | (self.mem[(self.pc + 1) as usize] as u16);
+    pub fn set_key(&mut self, key: u8) {
+        if key < 16 {
+            self.keys[key as usize] = true;
+        }
+    }
 
-        let pc_state = self.execute(opcode);
-
-        match pc_state {
-            PC::Next => self.pc += 2,
-            PC::Skip => self.pc += 4,
-            PC::Jump(addr) => self.pc = addr,
-        };
-        // }
-
-        self.vram_change
+    pub fn unset_key(&mut self, key: u8) {
+        if key < 16 {
+            self.keys[key as usize] = false;
+        }
     }
 
     fn execute(&mut self, opcode: u16) -> PC {
@@ -148,15 +175,14 @@ impl Chip {
 
         let (_, x, y, n) = nibbles;
 
-        console::log_1(&format!("{:01x}-{:01x}-{:01x}-{:01x}", nibbles.0, x, y, n).into());
 
         match (nibbles.0, x, y, n) {
             (0x00, 0x00, 0x0e, 0x00) => self.op_00e0(),
             (0x00, 0x00, 0x0e, 0x0e) => self.op_00ee(),
             (0x01, _, _, _) => PC::Jump(nnn),
             (0x02, _, _, _) => self.op_2nnn(nnn),
-            (0x03, _, _, _) => PC::skip_if(self.reg[x as usize] != kk),
-            (0x04, _, _, _) => PC::skip_if(self.reg[x as usize] == kk),
+            (0x03, _, _, _) => PC::skip_if(self.reg[x as usize] == kk),
+            (0x04, _, _, _) => PC::skip_if(self.reg[x as usize] != kk),
             (0x05, _, _, 0x00) => PC::skip_if(self.reg[x as usize] == self.reg[y as usize]),
             (0x06, _, _, _) => self.op_6xkk(x, kk),
             (0x07, _, _, _) => self.op_7xkk(x, kk),
@@ -169,8 +195,22 @@ impl Chip {
             (0x08, _, _, 0x06) => self.op_8xy6(x),
             (0x08, _, _, 0x07) => self.op_8xy7(x, y),
             (0x08, _, _, 0x0e) => self.op_8xye(x),
+            (0x09, _, _, 0x00) => PC::skip_if(self.reg[x as usize] != self.reg[y as usize]),
             (0x0a, _, _, _) => self.op_annn(nnn),
+            (0x0b, _, _, _) => PC::Jump(nnn + self.reg[0] as u16),
+            (0x0c, _, _, _) => self.op_cxkk(x, kk),
             (0x0d, _, _, _) => self.op_dxyn(x, y, n),
+            (0x0e, _, 0x09, 0x0e) => PC::skip_if(self.keys[self.reg[x as usize] as usize]),
+            (0x0e, _, 0x0a, 0x01) => PC::skip_if(!self.keys[self.reg[x as usize] as usize]),
+            (0x0f, _, 0x00, 0x07) => self.op_fx07(x),
+            (0x0f, _, 0x00, 0x0a) => self.op_fx0a(x),
+            (0x0f, _, 0x01, 0x05) => self.op_fx15(x),
+            (0x0f, _, 0x01, 0x08) => self.op_fx18(x),
+            (0x0f, _, 0x01, 0x0e) => self.op_fx1e(x),
+            (0x0f, _, 0x02, 0x09) => self.op_fx29(x),
+            (0x0f, _, 0x03, 0x03) => self.op_fx33(x),
+            (0x0f, _, 0x05, 0x05) => self.op_fx55(x),
+            (0x0f, _, 0x06, 0x05) => self.op_fx65(x),
             _ => PC::Next,
         }
     }
@@ -235,7 +275,7 @@ impl Chip {
 
     fn op_8xy5(&mut self, x: u8, y: u8) -> PC {
         let (x, y) = (x as usize, y as usize);
-        
+
         self.reg[0x0f] = if self.reg[x] > self.reg[y] { 1 } else { 0 };
         self.reg[x] = self.reg[x].wrapping_sub(self.reg[y]);
         PC::Next
@@ -251,7 +291,7 @@ impl Chip {
 
     fn op_8xy7(&mut self, x: u8, y: u8) -> PC {
         let (x, y) = (x as usize, y as usize);
-        
+
         self.reg[0x0f] = if self.reg[y] > self.reg[x] { 1 } else { 0 };
         self.reg[x] = self.reg[y].wrapping_sub(self.reg[x]);
         PC::Next
@@ -266,7 +306,19 @@ impl Chip {
     }
 
     fn op_annn(&mut self, nnn: u16) -> PC {
-        self.idx_reg = nnn;
+        self.idx = nnn;
+        PC::Next
+    }
+
+    fn op_cxkk(&mut self, x: u8, kk: u8) -> PC {
+        let mut buff = [0_u8];
+
+        match getrandom::getrandom(&mut buff) {
+            Err(_) => buff[0] = 0,
+            _ => (),
+        };
+
+        self.reg[x as usize] = buff[0] & kk;
         PC::Next
     }
 
@@ -278,11 +330,11 @@ impl Chip {
         for row in 0..n {
             let y = (self.reg[y as usize] % 32 + row) as usize;
 
-                if y >= 32 {
-                    break;
-                }
+            if y >= 32 {
+                break;
+            }
 
-            let sprite = self.mem[self.idx_reg as usize + row as usize];
+            let sprite = self.mem[self.idx as usize + row as usize];
 
             let bits = [
                 (sprite & 0b_1000_0000) >> 7,
@@ -314,6 +366,67 @@ impl Chip {
         }
 
         self.vram_change = true;
+        PC::Next
+    }
+
+    fn op_fx07(&mut self, x: u8) -> PC {
+        self.reg[x as usize] = self.delay_timer;
+        PC::Next
+    }
+
+    fn op_fx0a(&mut self, x: u8) -> PC {
+        self.key_waiting = true;
+        self.key_register = x as u16;
+        PC::Next
+    }
+
+    fn op_fx15(&mut self, x: u8) -> PC {
+        self.delay_timer = self.reg[x as usize];
+        PC::Next
+    }
+
+    fn op_fx18(&mut self, x: u8) -> PC {
+        self.sound_timer = self.reg[x as usize];
+        PC::Next
+    }
+
+    fn op_fx1e(&mut self, x: u8) -> PC {
+        self.idx += self.reg[x as usize] as u16;
+        PC::Next
+    }
+
+    fn op_fx29(&mut self, x: u8) -> PC {
+        self.idx = self.reg[x as usize] as u16 * 5 + 0x050;
+        PC::Next
+    }
+
+    fn op_fx33(&mut self, x: u8) -> PC {
+        let num = self.reg[x as usize];
+
+        self.mem[self.idx as usize] = num / 100;
+        self.mem[self.idx as usize + 1] = (num % 100) / 10;
+        self.mem[self.idx as usize + 2] = num % 10;
+
+        PC::Next
+    }
+
+    fn op_fx55(&mut self, x: u8) -> PC {
+        let x = x as usize;
+
+        for i in 0..=x {
+            self.mem[self.idx as usize + i] = self.reg[i];
+        }
+
+        PC::Next
+    }
+
+    fn op_fx65(&mut self, x: u8) -> PC {
+        let x = x as usize;
+
+        for i in 0..=x {
+            self.reg[i] = self.mem[self.idx as usize + i];
+        }
+
         PC::Next
     }
 }

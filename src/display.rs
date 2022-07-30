@@ -36,12 +36,16 @@ fn nearest_interpolation(data: &[u8], display: &mut [u8], scale: u32) {
             let py = y / scale;
 
             let pixel = data[(py * 64 + px) as usize];
-            let pixel = if pixel == 0 { 0 } else { 255 };
+            let (r, g, b) = if pixel == 0 {
+                (47, 47, 47)
+            } else {
+                (220, 220, 220)
+            };
 
             let idx = (y * 64 * scale * 4 + x * 4) as usize;
-            display[idx + 0] = pixel;
-            display[idx + 1] = pixel;
-            display[idx + 2] = pixel;
+            display[idx + 0] = r;
+            display[idx + 1] = g;
+            display[idx + 2] = b;
             display[idx + 3] = 255;
         }
     }
