@@ -105,6 +105,8 @@ impl Chip {
                 break;
             }
         }
+        self.pc = 0x200;
+
         self
     }
 

@@ -1,22 +1,70 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Hello wasm-pack!</title>
-    <style>
-        canvas {
-            border: solid black;
-            margin-left: auto;
-            margin-right: auto;
-            display: block;
-            padding: 4px;
-        }
-    </style>
-  </head>
-  <body>
-    <noscript>Enable Javascript</noscript>
+    <head>
+        <meta charset="utf-8" />
+        <title>Chip-8 Emulator</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <noscript>Enable Javascript</noscript>
+        <main>
+            <div id="canvas-options">
+                <canvas id="chip-display"></canvas>
 
-    <canvas id="chip-display"></canvas>
-    <script src="./bootstrap.js"></script>
-  </body>
+                <select name="roms" id="roms">
+                    <option selected value="ibm-logo">IBM Logo</option>
+                    <option value="brix">Brix</option>
+                    <option value="particle">Particle Demo</option>
+                    <option value="zero">Zero Demo</option>
+                </select>
+            </div>
+
+            <div id="mapping">
+                <div id="key-og">
+                    <span class="title">Original Keys</span>
+                    <span class="key">1</span>
+                    <span class="key">2</span>
+                    <span class="key">3</span>
+                    <span class="key">C</span>
+                    <span class="key">4</span>
+                    <span class="key">5</span>
+                    <span class="key">6</span>
+                    <span class="key">D</span>
+                    <span class="key">7</span>
+                    <span class="key">8</span>
+                    <span class="key">9</span>
+                    <span class="key">E</span>
+                    <span class="key">A</span>
+                    <span class="key">0</span>
+                    <span class="key">B</span>
+                    <span class="key">F</span>
+                </div>
+
+                <div id="arrow">⟶</div>
+
+                <div id="key-map">
+                    <span class="title">Mapped Keys</span>
+                    <span class="key">1</span>
+                    <span class="key">2</span>
+                    <span class="key">3</span>
+                    <span class="key">4</span>
+                    <span class="key">Q</span>
+                    <span class="key">W</span>
+                    <span class="key">E</span>
+                    <span class="key">R</span>
+                    <span class="key">A</span>
+                    <span class="key">S</span>
+                    <span class="key">D</span>
+                    <span class="key">F</span>
+                    <span class="key">Z</span>
+                    <span class="key">X</span>
+                    <span class="key">C</span>
+                    <span class="key">V</span>
+                </div>
+                
+            </div>
+        </main>
+
+        <script src="./bootstrap.js"></script>
+    </body>
 </html>

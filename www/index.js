@@ -47,14 +47,14 @@ function addKeyHandlers(chip) {
     });
 }
 
+let chip;
+
 async function run() {
-    const data = await fetch(
-        `roms/loktar00/Zero Demo [zeroZshadow, 2007].ch8`
-    );
+    const data = await fetch(`roms/loktar00/IBM Logo.ch8`);
     const array = await data.arrayBuffer();
     const buff = new Uint8ClampedArray(array);
 
-    const chip = Chip.new(context).load(buff);
+    chip = Chip.new(context).load(buff);
     addKeyHandlers(chip);
 
     console.log("Chip loaded");
@@ -72,5 +72,41 @@ async function run() {
 
     console.log("End of memory");
 }
+
+
+const chooseRom = document.getElementById("roms");
+
+chooseRom.addEventListener("change", async (event) => {
+    event.preventDefault();
+
+    let rom = "";
+    switch (chooseRom.value) {
+        case "ibm-logo":
+            rom = "IBM Logo.ch8";
+            break;
+        case "brix":
+            rom = "Brix [Andreas Gustafsson, 1990].ch8";
+            break;
+        case "particle":
+            rom = "Particle Demo [zeroZshadow, 2008].ch8";
+            break;
+        case "zero":
+            rom = "Zero Demo [zeroZshadow, 2007].ch8";
+            break;
+        default:
+            rom = "IBM Logo.ch8";
+            break;
+    }
+
+    const data = await fetch(`roms/loktar00/${rom}`);
+
+    const array = await data.arrayBuffer();
+    const buff = new Uint8ClampedArray(array);
+
+    chip = Chip.new(context).load(buff);
+    addKeyHandlers(chip);
+
+});
+
 
 // run();

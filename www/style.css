@@ -1,0 +1,59 @@
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#canvas-options {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 0rem;
+    gap: 2rem;
+}
+
+#chip-display {
+    border: solid black;
+    padding: 4px;
+}
+
+#mapping {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 0rem;
+    gap: 2rem;
+}
+
+#key-og, #key-map {
+    width: auto;
+    display: grid;
+    grid-gap: 2px 2px;
+    grid-template-columns: repeat(4, 1fr);
+    justify-items: center;
+    background-color: darkgray;
+    padding: 2px;
+}
+
+#key-og > .title, #key-map > .title {
+    grid-column: span 4;
+}
+
+#arrow {
+    font-size: 2rem;
+}
+
+.title {
+    padding: 5px 0px;
+    color: white;
+}
+
+.key {
+    font-size: x-large;
+    font-family: monospace;
+    text-align: center;
+    padding: 5px 10px;
+    background-color: white;
+}
