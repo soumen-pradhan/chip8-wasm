@@ -13,7 +13,12 @@ module.exports = {
             "index.html",
             "style.css",
             {
-                from: "roms/loktar00/*.ch8",
+                from: "./roms/loktar00",
+                to: "loktar00",
+            },
+            {
+                from: "./roms/mattmikolay",
+                to: "mattmikolay",
             },
         ]),
     ],
