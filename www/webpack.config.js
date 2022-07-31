@@ -14,11 +14,11 @@ module.exports = {
             "style.css",
             {
                 from: "./roms/loktar00",
-                to: "loktar00",
+                to: "roms/loktar00",
             },
             {
                 from: "./roms/mattmikolay",
-                to: "mattmikolay",
+                to: "roms/mattmikolay",
             },
         ]),
     ],
