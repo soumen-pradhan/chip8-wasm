@@ -4,25 +4,27 @@ use web_sys::{CanvasRenderingContext2d, ImageData};
 pub struct Display {
     buffer: Vec<u8>,
     canvas: CanvasRenderingContext2d,
+    scale: u32,
 }
 
-const SCALE: u32 = 10;
-
 impl Display {
-    pub fn new(canvas: CanvasRenderingContext2d) -> Self {
+    pub fn new(canvas: CanvasRenderingContext2d, scale: u32) -> Self {
         Display {
-            buffer: vec![0; (64 * SCALE as usize) * (32 * SCALE as usize) * 4],
+            buffer: vec![0; (64 * scale as usize) * (32 * scale as usize) * 4],
             canvas,
+            scale,
         }
     }
 
     pub fn draw(&mut self, data: &[u8]) -> Result<(), JsValue> {
-        nearest_interpolation(data, &mut self.buffer, SCALE);
+        nearest_interpolation(data, &mut self.buffer, self.scale);
+
         let image = ImageData::new_with_u8_clamped_array_and_sh(
             Clamped(&self.buffer),
-            64 * SCALE,
-            32 * SCALE,
+            64 * self.scale,
+            32 * self.scale,
         )?;
+
         self.canvas.put_image_data(&image, 0_f64, 0_f64)?;
 
         Ok(())

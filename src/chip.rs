@@ -2,15 +2,12 @@ use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::CanvasRenderingContext2d;
 
 use crate::display::Display;
-use crate::utils::set_panic_hook;
-
-#[allow(dead_code)]
 #[wasm_bindgen]
 pub struct Chip {
     mem: [u8; 4096],
     reg: [u8; 16],
     idx: u16,
-    pub pc: u16,
+    pc: u16,
     sp: u8,
     stack: [u16; 16],
     delay_timer: u8,
@@ -28,7 +25,7 @@ pub struct Chip {
 #[wasm_bindgen]
 pub struct OutputChange {
     pub vram: bool,
-    pub beep: bool
+    pub beep: bool,
 }
 
 const FONT_SET: [u8; 80] = [
@@ -68,9 +65,7 @@ impl PC {
 
 #[wasm_bindgen]
 impl Chip {
-    pub fn new(canvas: CanvasRenderingContext2d) -> Self {
-        set_panic_hook();
-
+    pub fn new(canvas: CanvasRenderingContext2d, scale: u32) -> Self {
         let mut mem = [0_u8; 4096];
         for i in 0x050..0x09f {
             mem[i] = FONT_SET[i - 0x050];
@@ -88,7 +83,7 @@ impl Chip {
 
             vram: [0; 64 * 32],
             vram_change: false,
-            display: Display::new(canvas),
+            display: Display::new(canvas, scale),
 
             keys: [false; 16],
             key_waiting: false,
@@ -113,6 +108,10 @@ impl Chip {
     pub fn draw(&mut self) -> Result<(), JsValue> {
         self.display.draw(&self.vram)?;
         Ok(())
+    }
+
+    pub fn next(&self) -> bool {
+        self.pc <= 0xfff
     }
 
     pub fn tick(&mut self) -> OutputChange {
@@ -176,7 +175,6 @@ impl Chip {
         let kk = (opcode & 0x00ff) as u8;
 
         let (_, x, y, n) = nibbles;
-
 
         match (nibbles.0, x, y, n) {
             (0x00, 0x00, 0x0e, 0x00) => self.op_00e0(),

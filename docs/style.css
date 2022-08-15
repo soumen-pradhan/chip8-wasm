@@ -39,6 +39,12 @@ main {
     padding: 4px;
 }
 
+#roms {
+    font-size: medium;
+    border-radius: 20px;
+    padding: .2rem 1rem;
+}
+
 #mapping {
     display: flex;
     flex-direction: row;

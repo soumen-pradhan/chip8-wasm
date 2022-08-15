@@ -42,14 +42,14 @@ async function run() {
     const array = await data.arrayBuffer();
     const buff = new Uint8ClampedArray(array);
 
-    chip = Chip.new(context).load(buff);
+    chip = Chip.new(context, SCALE).load(buff);
     addKeyHandlers(chip);
 
     console.log("Chip loaded");
 
     chip.draw();
 
-    while (chip.pc <= 0xfff) {
+    while (chip.next()) {
         const output = chip.tick();
 
         if (output.vram) chip.draw();
@@ -75,7 +75,7 @@ selectRom.addEventListener("change", async (event) => {
     const array = await data.arrayBuffer();
     const buff = new Uint8ClampedArray(array);
 
-    chip = Chip.new(context).load(buff);
+    chip = Chip.new(context, SCALE).load(buff);
     addKeyHandlers(chip);
 });
 
