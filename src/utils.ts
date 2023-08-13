@@ -1,6 +1,6 @@
 export const log = console.log;
 
-export const err = (str: string) => {
+export const throwError = (str: string) => {
     throw new Error(str);
 };
 

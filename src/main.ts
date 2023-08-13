@@ -1,6 +1,6 @@
 import './style.css';
 
-import { err, log, sleep } from './utils';
+import { throwError, log, sleep } from './utils';
 
 import vertShaderCode from './shaders/tri.vert.wgsl?raw';
 import fragShaderCode from './shaders/tri.frag.wgsl?raw';
@@ -28,7 +28,7 @@ import { roms, keys, beep } from './info';
 /** Check and set up device */
 
 const canvas: HTMLCanvasElement =
-    document.querySelector('#chip-display') ?? err('No canvas element');
+    document.querySelector('#chip-display') ?? throwError('No canvas element');
 {
     // Set width and height of canvas according to 2:1
     const aspectRatio = 2;
@@ -39,15 +39,16 @@ const canvas: HTMLCanvasElement =
     log(`canvas: ${canvas.width} x ${canvas.height}`);
 }
 
-const gpu = navigator.gpu ?? err('WebGPU is not supported');
+const gpu = navigator.gpu ?? throwError('WebGPU is not supported');
 const device =
     (await (await gpu.requestAdapter())?.requestDevice()) ??
-    err('No device found');
+    throwError('No device found');
 
 const canvasFormat = gpu.getPreferredCanvasFormat();
 
 const context =
-    canvas.getContext('webgpu') ?? err('No webgpu context for the canvas');
+    canvas.getContext('webgpu') ??
+    throwError('No webgpu context for the canvas');
 {
     context.configure({
         device,
@@ -251,11 +252,12 @@ async function render(_now: DOMHighResTimeStamp) {
 // Possible Bug: Race condition for chip access
 
 const keyOg: NodeListOf<HTMLElement> =
-    document.querySelectorAll('#key-og span.key') ?? err('No Chip8 Keys Table');
+    document.querySelectorAll('#key-og span.key') ??
+    throwError('No Chip8 Keys Table');
 
 const keyMap: NodeListOf<HTMLElement> =
     document.querySelectorAll('#key-map span.key') ??
-    err('No Mapped Keys Table');
+    throwError('No Mapped Keys Table');
 
 function addKeyHandlers(chip: Chip) {
     document.addEventListener('keydown', (event) => {
@@ -286,7 +288,7 @@ addKeyHandlers(chip);
 /** DropDown Menu (from info.ts) */
 
 const selectRom: HTMLSelectElement =
-    document.querySelector('#roms') ?? err('No ROM selection menu');
+    document.querySelector('#roms') ?? throwError('No ROM selection menu');
 
 selectRom.addEventListener('change', async (_event) => {
     const rom = roms.get(selectRom.value) ?? 'roms/loktar00/IBM Logo.ch8';

@@ -8,7 +8,7 @@ Demo: [soumen-pradhan.github.io/chip8-wasm](https://soumen-pradhan.github.io/chi
 
 The core logic of Chip-8 spec is implemented in Rust, compiled to WASM (WebAssembly). The compiled WASM module exposes its `display ram` and `set_key` functions.
 
-The exposed Display ram is then used as a texture for our `canvas` element. This allows us to use the WebGPU API and efficiently scale and draw the display.
+The exposed Display ram is then used as a texture for our `canvas` element. This allows us to use the WebGPU API and efficiently scale and draw the display. The exposed pointer is stable, since no rellocation happens.
 
 This decouples the emulator logic and render logic.
 
