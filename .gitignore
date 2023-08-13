@@ -1,5 +1,5 @@
+/node_modules
 /pkg
 /target
 Cargo.lock
-www/node_modules
-www/package-lock.json
+package-lock.json
