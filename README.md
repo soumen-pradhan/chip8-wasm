@@ -34,7 +34,7 @@ npm run dev
 
 Caution:
 
--   The first time you run `npm run dev`, a resolve error will be dislayed (related to esbuild), however the packages will be served correctly. This will not happen for subsequent builds or production build.
+-   The first time you run `npm run dev`, a resolve error will be displayed (related to esbuild), however the packages will be served correctly. This will not happen for subsequent builds or production build.
 -   You can add multiple rust crates, but `vite` will compile all of them regardless of which crate you modified.
 
 ### Build for production
@@ -46,15 +46,17 @@ npm run build
 ## Resources
 
 #### Chip-8
+
 -   [Tobias' Guide](https://tobiasvl.github.io/blog/write-a-chip-8-emulator)
 -   [Cowgod's Chip-8 Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM)
 -   [Rust impl using SDL](https://github.com/starrhorne/chip8-rust)
 
 #### WebGPU
-- [WebGPU samples in next.js](https://webgpu.github.io/webgpu-samples/)
-- [Raw WebGPU](https://alain.xyz/blog/raw-webgpu)
-- [Introduction to WebGPU (YouTube)](https://youtu.be/Hm2_bH_8j3k)
-- [WebGPU spec](https://www.w3.org/TR/webgpu) | [WGSL spec](https://www.w3.org/TR/WGSL)
+
+-   [WebGPU samples in next.js](https://webgpu.github.io/webgpu-samples/)
+-   [Raw WebGPU](https://alain.xyz/blog/raw-webgpu)
+-   [Introduction to WebGPU (YouTube)](https://youtu.be/Hm2_bH_8j3k)
+-   [WebGPU spec](https://www.w3.org/TR/webgpu) | [WGSL spec](https://www.w3.org/TR/WGSL)
 
 #### ROMS
 
