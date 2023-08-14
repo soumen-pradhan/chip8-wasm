@@ -103,13 +103,13 @@ try {
     const gpu = navigator.gpu ?? throwError('WebGPU is not supported');
     const device =
         (await (await gpu.requestAdapter())?.requestDevice()) ??
-        throwError('No device found');
+        throwError('No GPU device found');
 
     const canvasFormat = gpu.getPreferredCanvasFormat();
 
     const context =
         canvas.getContext('webgpu') ??
-        throwError('No webgpu context for the canvas');
+        throwError('No WebGPU context for the canvas');
     {
         context.configure({
             device,
