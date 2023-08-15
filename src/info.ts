@@ -1,5 +1,6 @@
 // prettier-ignore
 export const roms = new Map([
+    ['Chip8 Pic',  'roms/loktar00/Chip8 Picture.ch8'],
     ['IBM Logo',   'roms/loktar00/IBM Logo.ch8'],
     ['Brix',       'roms/loktar00/Brix [Andreas Gustafsson, 1990].ch8'],
     ['Particles',  'roms/loktar00/Particle Demo [zeroZshadow, 2008].ch8'],
@@ -7,7 +8,6 @@ export const roms = new Map([
     ['Keypad',     'roms/loktar00/Keypad Test [Hap, 2006].ch8'],
     ['Maze',       'roms/loktar00/Maze [David Winter, 199x].ch8'],
     ['Trip8',      'roms/loktar00/Trip8 Demo (2008) [Revival Studios].ch8'],
-    ['Chip8 Pic',  'roms/loktar00/Chip8 Picture.ch8'],
     ['Heart Beat', 'roms/mattmikolay/heartmonitor/heart_monitor.ch8'],
     ['Morse Code', 'roms/mattmikolay/morsecode/morse_demo.ch8'],
     ['Random',     'roms/mattmikolay/randomnumber/random_number_test.ch8'],
