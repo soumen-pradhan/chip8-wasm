@@ -67,7 +67,7 @@ export const indices = new Uint16Array([0, 1, 2, 0, 2, 3]);
 
 // prettier-ignore
 export const uniformData = new Float32Array([
-    // ♟️ ModelViewProjection Matrix (Identity)
+    // ModelViewProjection Matrix (Identity)
     1.0, 0.0, 0.0, 0.0,
     0.0, 1.0, 0.0, 0.0,
     0.0, 0.0, 1.0, 0.0,
