@@ -91,8 +91,6 @@ function addTouchHandlers() {
             keyOgChild[idxKey + 1].classList.add('invert');
             keyMapChild[idxKey + 1].classList.add('invert');
         }
-
-        log('pointerdown', key);
     });
 
     keyOg.addEventListener('pointerup', (event) => {
@@ -109,8 +107,6 @@ function addTouchHandlers() {
             keyOgChild[idxKey + 1].classList.remove('invert');
             keyMapChild[idxKey + 1].classList.remove('invert');
         }
-
-        log('pointerdown', key);
     });
 }
 
@@ -141,11 +137,21 @@ for (let [value, _] of roms) {
 /** Render Logic */
 
 try {
+    let gpuDevice = false;
+
     if (window.navigator?.gpu) {
-        log('Rendering using WebGPU');
-        webgpuRender(canvas, chip, textureData);
-    } else if (window['WebGL2RenderingContext']) {
-        log('WebGPU not available. Falling back to WebGL');
+        try {
+            gpuDevice = true;
+            log('Rendering using WebGPU');
+            webgpuRender(canvas, chip, textureData);
+        } catch (e) {
+            console.error(`${e}`);
+            gpuDevice = false;
+        }
+    }
+
+    if (!gpuDevice && window['WebGL2RenderingContext']) {
+        log('Falling back to WebGL');
         webglRender(canvas, chip, textureData);
     } else {
         throwError('No Renderer available');
