@@ -1,4 +1,4 @@
-import { sleep, throwError } from './utils';
+import { sleep } from './utils';
 
 import { Chip } from '@pkg/chip8/chip8_wasm';
 import {
@@ -14,22 +14,16 @@ import vertShaderCode from './shaders/tri.vert.wgsl?raw';
 import fragShaderCode from './shaders/tri.frag.wgsl?raw';
 import { beep } from './info';
 
-export async function webgpuRender(
+export function webgpuRender(
     canvas: HTMLCanvasElement,
+    device: GPUDevice,
     chip: Chip,
     textureData: Uint8Array,
 ) {
     /** Check and set up device */
-    const gpu = navigator.gpu ?? throwError('WebGPU is not supported');
-    const device =
-        (await (await gpu.requestAdapter())?.requestDevice()) ??
-        throwError('No GPU device found');
+    const canvasFormat = navigator.gpu.getPreferredCanvasFormat();
 
-    const canvasFormat = gpu.getPreferredCanvasFormat();
-
-    const context =
-        canvas.getContext('webgpu') ??
-        throwError('No WebGPU context for the canvas');
+    const context = canvas.getContext('webgpu')!;
     {
         context.configure({
             device,

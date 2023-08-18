@@ -1,6 +1,6 @@
 import './style.css';
 
-import { log, throwError, writeCanvas } from './utils';
+import { log, throwError } from './utils';
 
 import { Chip } from '@pkg/chip8';
 import { memory } from '@pkg/chip8/chip8_wasm_bg.wasm';
@@ -43,10 +43,11 @@ const textureData = new Uint8Array(
 // Possible Bug: Race condition for chip access
 
 const keyOg: HTMLDivElement = document.querySelector('#key-og')!;
-const keyMap: HTMLDivElement = document.querySelector('#key-map')!;
 
-const keyOgChild = keyOg.children;
-const keyMapChild = keyMap.children;
+const keyOgChild: NodeListOf<HTMLDivElement> =
+    document.querySelectorAll('#key-og .key');
+const keyMapChild: NodeListOf<HTMLDivElement> =
+    document.querySelectorAll('#key-map .key');
 
 function addKeyHandlers(chip: Chip) {
     document.addEventListener('keydown', (event) => {
@@ -57,8 +58,8 @@ function addKeyHandlers(chip: Chip) {
 
             chip.set_key(mappedKey);
 
-            keyOgChild[idxKey + 1].classList.add('invert');
-            keyMapChild[idxKey + 1].classList.add('invert');
+            keyOgChild[idxKey].classList.add('invert');
+            keyMapChild[idxKey].classList.add('invert');
         }
     });
 
@@ -70,8 +71,8 @@ function addKeyHandlers(chip: Chip) {
 
             chip.unset_key(mappedKey);
 
-            keyOgChild[idxKey + 1].classList.remove('invert');
-            keyMapChild[idxKey + 1].classList.remove('invert');
+            keyOgChild[idxKey].classList.remove('invert');
+            keyMapChild[idxKey].classList.remove('invert');
         }
     });
 }
@@ -88,8 +89,8 @@ function addTouchHandlers() {
 
             chip.set_key(mappedKey);
 
-            keyOgChild[idxKey + 1].classList.add('invert');
-            keyMapChild[idxKey + 1].classList.add('invert');
+            keyOgChild[idxKey].classList.add('invert');
+            keyMapChild[idxKey].classList.add('invert');
         }
     });
 
@@ -104,8 +105,8 @@ function addTouchHandlers() {
 
             chip.unset_key(mappedKey);
 
-            keyOgChild[idxKey + 1].classList.remove('invert');
-            keyMapChild[idxKey + 1].classList.remove('invert');
+            keyOgChild[idxKey].classList.remove('invert');
+            keyMapChild[idxKey].classList.remove('invert');
         }
     });
 }
@@ -136,29 +137,30 @@ for (let [value, _] of roms) {
 
 /** Render Logic */
 
-try {
-    let gpuDevice = false;
+async function main() {
+    try {
+        const device =
+            (await (await navigator.gpu?.requestAdapter())?.requestDevice()) ??
+            null;
 
-    if (window.navigator?.gpu) {
-        try {
-            gpuDevice = true;
+        if (device) {
             log('Rendering using WebGPU');
-            webgpuRender(canvas, chip, textureData);
-        } catch (e) {
-            console.error(`${e}`);
-            gpuDevice = false;
+            webgpuRender(canvas, device, chip, textureData);
+        } else if (window.WebGL2RenderingContext) {
+            log('Falling back to WebGL');
+            webglRender(canvas, chip, textureData);
+        } else {
+            throwError('No Renderer available');
         }
-    }
+    } catch (e) {
+        console.error(`${e}`);
 
-    if (!gpuDevice && window['WebGL2RenderingContext']) {
-        log('Falling back to WebGL');
-        webglRender(canvas, chip, textureData);
-    } else {
-        throwError('No Renderer available');
+        const app: HTMLDivElement = document.querySelector('#app')!;
+        const errElem = document.createElement('div');
+        errElem.classList.add('error');
+        errElem.textContent = `${e}`;
+        app.appendChild(errElem);
     }
-} catch (e) {
-    console.error(`${e}`);
-    const context =
-        canvas.getContext('2d') ?? throwError('No 2d canvas context');
-    writeCanvas(context, `${e}`);
 }
+
+main();

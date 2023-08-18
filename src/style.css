@@ -45,6 +45,12 @@ main {
     gap: 2rem;
 }
 
+.error {
+    color: red;
+    font-size: x-large;
+    text-align: center;
+}
+
 #app canvas {
     width: 90vw;
     max-width: 900px;
