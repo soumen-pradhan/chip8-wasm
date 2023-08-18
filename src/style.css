@@ -100,17 +100,35 @@ main {
     font-size: x-large;
     font-family: monospace;
     text-align: center;
-    padding: 5px 10px;
+    padding: 9px 18px;
     background-color: white;
+
+    user-select: none;
+    touch-action: none;
+}
+
+.invert {
+    filter: invert(90%);
 }
 
 @media (orientation: portrait) {
     #interaction {
         flex-direction: column;
         align-items: center;
+        gap: 0;
+    }
+
+    #arrow,
+    #key-map {
+        display: none;
+    }
+
+    #key-og {
+        font-size: 2rem;
     }
 
     .key {
         font-size: smaller;
+        padding: 1.5rem 2rem;
     }
 }
